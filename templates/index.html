@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+
+<body>
+
+    <div style="color:blue">
+        <form action="{{ url_for('predict')}}" method="post">
+            <h2>BMW Price Prediction</h2>
+            <h3>Year</h3>
+            <input id="first" name="Year" type="number ">
+            <h3>How Many Kilometers Driven?</h3><input id="third" name="Kms_Driven" required="required">
+			<h3>How Much Tax Must Be Paid?</h3><input id="five" name="Tax" required="required">
+			<h3>What is the mpg (miles per galon)?</h3><input id="six" name="mpg" required="required">
+			<h3>What is the engine size?</h3><input id="seven" name="engine" required="required">
+            <h3>What Is the Fuel type?</h3><br><select name="Fuel_Type_Petrol" id="fuel" required="required">
+                <option value="Petrol">Petrol</option>
+                <option value="Diesel">Diesel</option>
+                <option value="Hybrid">Hybrid</option>
+				<option value="Electric">Electric</option>
+				<option value="Other">Other</option>
+            </select>
+            <h3>What is your car model?</h3><br><select name="Model" id="resea" required="required">
+                <option value="3 Series">3 Series</option>
+                <option value="1 Series">1 Series</option>
+				<option value="2 Series">2 Series</option>
+				<option value="5 Series">5 Series</option>
+				<option value="4 Series">4 Series</option>
+				<option value="6 Series">6 Series</option>
+				<option value="7 Series">7 Series</option>
+				<option value="8 Series">8 Series</option>
+				<option value="X1">X1</option>
+				<option value="X3">X3</option>
+				<option value="X5">X5</option>
+				<option value="X2">X2</option>
+				<option value="X4">X4</option>
+				<option value="X6">X6</option>
+				<option value="X7">X7</option>
+				<option value="M2">M2</option>
+				<option value="M3">M3</option>
+				<option value="M4">M4</option>
+				<option value="M5">M5</option>
+				<option value="M6">M6</option>
+				<option value="Z3">Z3</option>
+				<option value="Z4">Z4</option>
+				<option value="i3">i3</option>
+				<option value="i8">i8</option>
+            </select>
+            <h3>Transmission type</h3><br><select name="Transmission_Mannual" id="research" required="required">
+                <option value="Mannual">Manual</option>
+                <option value="Automatic">Automatic</option>
+				<option value="Semi-Auto">Semi-Auto</option>
+            </select>
+            <br><br><button id="sub" type="submit ">Calculate Price</button>
+            <br>
+
+
+
+
+        </form>
+
+
+
+        <br><br><h3>{{ prediction_text }}<h3>
+    </div>
+
+
+
+
+    <style>
+        body {
+            background-color: lightslategray;
+            text-align: center;
+            padding: 0px;
+        }
+        
+        #research {
+            font-size: 18px;
+            width: 100px;
+            height: 23px;
+            top: 23px;
+        }
+        
+        #box {
+            border-radius: 60px;
+            border-color: 45px;
+            border-style: solid;
+            font-family: cursive;
+            text-align: center;
+            background-color: rgb(168, 131, 61);
+            font-size: medium;
+            position: absolute;
+            width: 700px;
+            bottom: 9%;
+            height: 850px;
+            right: 30%;
+            padding: 0px;
+            margin: 0px;
+            font-size: 14px;
+        }
+        
+        #fuel {
+            width: 83px;
+            height: 43px;
+            text-align: center;
+            border-radius: 14px;
+            font-size: 20px;
+        }
+        
+        #fuel:hover {
+            background-color: coral;
+        }
+        
+        #research {
+            width: 99px;
+            height: 43px;
+            text-align: center;
+            border-radius: 14px;
+            font-size: 18px;
+        }
+        
+        #research:hover {
+            background-color: coral;
+        }
+        
+        #resea {
+            width: 99px;
+            height: 43px;
+            text-align: center;
+            border-radius: 14px;
+            font-size: 18px;
+        }
+        
+        #resea:hover {
+            background-color: coral;
+        }
+        
+        #sub {
+            width: 120px;
+            height: 43px;
+            text-align: center;
+            border-radius: 14px;
+            font-size: 18px;
+        }
+        
+        #sub:hover {
+            background-color: darkcyan;
+        }
+        
+        #first {
+            border-radius: 14px;
+            height: 25px;
+            font-size: 20px;
+            text-align: center;
+        }
+        
+        #second {
+            border-radius: 14px;
+            height: 25px;
+            font-size: 20px;
+            text-align: center;
+        }
+        
+        #third {
+            border-radius: 14px;
+            height: 25px;
+            font-size: 20px;
+            text-align: center;
+        }
+        
+        #fourth {
+            border-radius: 14px;
+            height: 25px;
+            font-size: 20px;
+            text-align: center;
+        }
+		
+		#five {
+            border-radius: 14px;
+            height: 25px;
+            font-size: 20px;
+            text-align: center;
+        }
+		
+		#six {
+            border-radius: 14px;
+            height: 25px;
+            font-size: 20px;
+            text-align: center;
+        }
+		
+		#seven {
+            border-radius: 14px;
+            height: 25px;
+            font-size: 20px;
+            text-align: center;
+        }
+    </style>
+</body>
+
+</html>

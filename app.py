@@ -1,7 +1,7 @@
 import streamlit as st
 import pandas as pd
 import numpy as np
-import joblib  # <-- changed from pickle to joblib
+import joblib
 
 # --- Load the Model ---
 try:
@@ -61,7 +61,8 @@ if st.button("Predict Price"):
         'mpg': mpg,
         'engineSize': engine_size,
         'transmission': transmission_selected,
-        'fuelType': fuel_type_selected
+        'fuelType': fuel_type_selected,
+        'series': model_selected.split()[0]  # extract series from model
     }
 
     # Extract 'type' from model
@@ -74,8 +75,6 @@ if st.button("Predict Price"):
             return 'i'
         elif 'Z' in model_name:
             return 'Z'
-        elif 'M' in model_name:
-            return 'M'
         return 'Other'
 
     input_data['type'] = get_type(model_selected)
@@ -92,12 +91,22 @@ if st.button("Predict Price"):
     # Combine all features
     processed_input = pd.concat([processed_input, trans_dummies, fuel_dummies, type_dummies], axis=1)
 
+    # Add 'Electric' column if fuel type is electric
+    if fuel_type_selected == 'Electric':
+        processed_input['Electric'] = 1
+    else:
+        processed_input['Electric'] = 0
+
+    # Add 'series' column
+    processed_input['series'] = input_data['series']
+
     # Match columns expected by model
     expected_columns = [
         'year', 'mileage', 'tax', 'mpg', 'engineSize',
-        'Manual', 'Semi-Auto',  # transmission (drop_first=True)
-        'Hybrid', 'Other', 'Petrol',  # fuelType (drop_first=True)
-        'M', 'S', 'X', 'Z', 'i'  # type (drop_first=True)
+        'Manual', 'Semi-Auto',
+        'Electric', 'Hybrid', 'Other', 'Petrol',
+        'S', 'X', 'Z', 'i',
+        'series'
     ]
     final_input_df = processed_input.reindex(columns=expected_columns, fill_value=0)
 

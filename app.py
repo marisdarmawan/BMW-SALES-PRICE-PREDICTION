@@ -54,41 +54,51 @@ fuel_type_selected = st.selectbox("Fuel Type", options=fuel_types)
 st.markdown("---")
 
 if st.button("Predict Price"):
-    input_data = {
+        input_data = {
         'year': year,
         'mileage': mileage,
         'tax': tax,
         'mpg': mpg,
         'engineSize': engine_size,
-        'model': model_selected,
         'transmission': transmission_selected,
         'fuelType': fuel_type_selected
     }
+
+    # Extract 'type' from model
+    def get_type(model_name):
+        if 'Series' in model_name:
+            return 'S'
+        elif 'X' in model_name:
+            return 'X'
+        elif 'i' in model_name:
+            return 'i'
+        elif 'Z' in model_name:
+            return 'Z'
+        elif 'M' in model_name:
+            return 'M'
+        return 'Other'
+
+    input_data['type'] = get_type(model_selected)
     input_df = pd.DataFrame([input_data])
 
+    # Start with numerical features
     processed_input = input_df[['year', 'mileage', 'tax', 'mpg', 'engineSize']].copy()
 
-    model_dummies = pd.get_dummies(input_df['model'], prefix='model', drop_first=True)
-    for col in sorted(models)[1:]:
-        processed_input[f'model_{col}'] = model_dummies.get(f'model_{col}', 0)
+    # Get dummies (no prefixes, drop_first=True)
+    for col in ['transmission', 'fuelType', 'type']:
+        dummies = pd.get_dummies(input_df[col], drop_first=True)
+        processed_input = pd.concat([processed_input, dummies], axis=1)
 
-    transmission_dummies = pd.get_dummies(input_df['transmission'], prefix='transmission', drop_first=True)
-    for col in sorted(transmissions)[1:]:
-        processed_input[f'transmission_{col}'] = transmission_dummies.get(f'transmission_{col}', 0)
-
-    fuel_dummies = pd.get_dummies(input_df['fuelType'], prefix='fuelType', drop_first=True)
-    for col in sorted(fuel_types)[1:]:
-        processed_input[f'fuelType_{col}'] = fuel_dummies.get(f'fuelType_{col}', 0)
-
-    # Combine all expected columns in the correct order
-    numerical_cols = ['year', 'mileage', 'tax', 'mpg', 'engineSize']
-    expected_model_dummies = [f'model_{m}' for m in sorted(models)[1:]]
-    expected_transmission_dummies = [f'transmission_{t}' for t in sorted(transmissions)[1:]]
-    expected_fuel_type_dummies = [f'fuelType_{f}' for f in sorted(fuel_types)[1:]]
-    expected_columns = numerical_cols + expected_model_dummies + expected_transmission_dummies + expected_fuel_type_dummies
-
+    # Match columns expected by model
+    expected_columns = [
+        'year', 'mileage', 'tax', 'mpg', 'engineSize',
+        'Manual', 'Semi-Auto',  # transmission (drop_first=True)
+        'Hybrid', 'Other', 'Petrol',  # fuelType (drop_first=True)
+        'M', 'S', 'X', 'Z', 'i'  # type (drop_first=True)
+    ]
     final_input_df = processed_input.reindex(columns=expected_columns, fill_value=0)
 
+    # Predict
     try:
         predicted_log_price = model.predict(final_input_df)[0]
         predicted_original_price = denormalize_price(predicted_log_price)

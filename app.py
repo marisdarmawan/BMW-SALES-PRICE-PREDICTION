@@ -77,7 +77,8 @@ if st.button("Predict Price"):
             return 'i'
         elif 'Z' in model_name:
             return 'Z'
-        return 'Other'
+        elif 'M' in model_name:
+            return 'M'
 
     input_data['type'] = get_type(model_selected)
     input_df = pd.DataFrame([input_data])

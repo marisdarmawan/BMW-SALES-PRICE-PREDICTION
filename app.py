@@ -54,7 +54,7 @@ fuel_type_selected = st.selectbox("Fuel Type", options=fuel_types)
 st.markdown("---")
 
 if st.button("Predict Price"):
-        input_data = {
+    input_data = {
         'year': year,
         'mileage': mileage,
         'tax': tax,
@@ -84,10 +84,13 @@ if st.button("Predict Price"):
     # Start with numerical features
     processed_input = input_df[['year', 'mileage', 'tax', 'mpg', 'engineSize']].copy()
 
-    # Get dummies (no prefixes, drop_first=True)
-    for col in ['transmission', 'fuelType', 'type']:
-        dummies = pd.get_dummies(input_df[col], drop_first=True)
-        processed_input = pd.concat([processed_input, dummies], axis=1)
+    # Generate one-hot encoded columns without prefix
+    trans_dummies = pd.get_dummies(input_df['transmission'], prefix='', prefix_sep='', drop_first=True)
+    fuel_dummies = pd.get_dummies(input_df['fuelType'], prefix='', prefix_sep='', drop_first=True)
+    type_dummies = pd.get_dummies(input_df['type'], prefix='', prefix_sep='', drop_first=True)
+
+    # Combine all features
+    processed_input = pd.concat([processed_input, trans_dummies, fuel_dummies, type_dummies], axis=1)
 
     # Match columns expected by model
     expected_columns = [

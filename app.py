@@ -104,9 +104,8 @@ if st.button("Predict Price"):
     expected_columns = [
         'year', 'mileage', 'tax', 'mpg', 'engineSize',
         'Manual', 'Semi-Auto',
-        'Electric', 'Hybrid', 'Other', 'Petrol',
-        'S', 'X', 'Z', 'i',
-        'series'
+        'Electric', 'Hybrid', 'Other', 'Petrol', 'series',
+        'S', 'X', 'Z', 'i'
     ]
     final_input_df = processed_input.reindex(columns=expected_columns, fill_value=0)
 

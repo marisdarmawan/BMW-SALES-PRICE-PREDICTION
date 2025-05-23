@@ -6,6 +6,7 @@ import joblib
 # --- Load the Model ---
 try:
     model = joblib.load('gradient_boosting_regression_model.pkl')
+    power_transformer = joblib.load('price_transformer.pkl')
 except FileNotFoundError:
     st.error("Error: Model file 'gradient_boosting_regression_model.pkl' not found. Please ensure it's in the same directory as app.py.")
     st.stop()
@@ -14,8 +15,9 @@ except Exception as e:
     st.stop()
 
 # --- Denormalization Function ---
-def denormalize_price(log_price):
-    return np.exp(log_price)
+def denormalize_price(transformed_price, transformer):
+    # The inverse_transform method expects a 2D array
+    return transformer.inverse_transform([[transformed_price]])[0][0]
 
 # --- Streamlit App Layout ---
 st.set_page_config(page_title="BMW Used Car Price Predictor", layout="centered")
@@ -111,8 +113,8 @@ if st.button("Predict Price"):
 
     # Predict
     try:
-        predicted_log_price = model.predict(final_input_df)[0]
-        predicted_original_price = denormalize_price(predicted_log_price)
+        predicted_transformed_price = model.predict(final_input_df)[0]
+        predicted_original_price = denormalize_price(predicted_transformed_price, power_transformer) # Use the loaded transformer
         st.success(f"Estimated BMW Used Car Price: **£{predicted_original_price:,.2f}**")
         st.balloons()
     except Exception as e:

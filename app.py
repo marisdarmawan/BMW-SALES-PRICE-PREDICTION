@@ -56,67 +56,116 @@ fuel_type_selected = st.selectbox("Fuel Type", options=fuel_types)
 st.markdown("---")
 
 if st.button("Predict Price"):
-    input_data = {
+    # Function to extract series (should mirror your notebook's logic)
+    def get_series_notebook(model_name_str):
+        if '1 Series' in model_name_str or (not 'Series' in model_name_str and '1' in model_name_str and not model_name_str.startswith('X1')and not model_name_str.startswith('i')): return 1
+        elif '2 Series' in model_name_str or (not 'Series' in model_name_str and '2' in model_name_str): return 2
+        elif '3 Series' in model_name_str or (not 'Series' in model_name_str and '3' in model_name_str and not model_name_str.startswith('i')): return 3
+        elif '4 Series' in model_name_str or (not 'Series' in model_name_str and '4' in model_name_str): return 4
+        elif '5 Series' in model_name_str or (not 'Series' in model_name_str and '5' in model_name_str): return 5
+        elif '6 Series' in model_name_str or (not 'Series' in model_name_str and '6' in model_name_str): return 6
+        elif '7 Series' in model_name_str or (not 'Series' in model_name_str and '7' in model_name_str): return 7
+        elif '8 Series' in model_name_str or (not 'Series' in model_name_str and '8' in model_name_str and not model_name_str.startswith('i')): return 8
+        # Handling for X series models like X1, X2 etc. if they are treated as series 1, 2...
+        # This part needs to be exactly how your notebook's get_series handles them.
+        # The notebook's get_series just checks for '1' in string, '2' in string etc.
+        # So "M4" would return 4. "Z3" would return 3. "i3" would return 3. "X5" would return 5.
+        # If a model like "M" or "X" (without a number) was meant to be series 0 in the notebook:
+        if 'M' == model_name_str.strip() : return 0 # Example for plain "M"
+        if 'X' == model_name_str.strip() : return 0 # Example for plain "X"
+
+        # Default for models where series number is not explicitly 1-8 or extracted.
+        # This should match how NaNs from get_series were handled in the notebook (e.g., filled with 0).
+        return 0
+
+    # Function to extract type (should mirror your notebook's logic)
+    def get_type_notebook(model_name_str):
+        if 'Series' in model_name_str: return 'S'
+        elif 'X' in model_name_str: return 'X'
+        elif 'i' in model_name_str: return 'i'
+        elif 'Z' in model_name_str: return 'Z'
+        elif 'M' in model_name_str: return 'M'
+        return 'Unknown' # Fallback, though all models in your list should be covered
+
+    # Prepare a dictionary for the single row of input
+    input_data_dict = {
         'year': year,
         'mileage': mileage,
         'tax': tax,
         'mpg': mpg,
         'engineSize': engine_size,
-        'transmission': transmission_selected,
-        'fuelType': fuel_type_selected,
-        'series': model_selected.split()[0]  # extract series from model
+        'Manual': 0, 'Semi-Auto': 0,
+        'Electric': 0, 'Hybrid': 0, 'Other': 0, 'Petrol': 0, # 'Other' for fuelType
+        'series': get_series_notebook(model_selected),
+        'S': 0, 'X': 0, 'Z': 0, 'i': 0 # 'i' for car type
     }
 
-    # Extract 'type' from model
-    def get_type(model_name):
-        if 'Series' in model_name:
-            return 'S'
-        elif 'X' in model_name:
-            return 'X'
-        elif 'i' in model_name:
-            return 'i'
-        elif 'Z' in model_name:
-            return 'Z'
-        elif 'M' in model_name:
-            return 'M'
+    # Set transmission dummies (Automatic is the base category if drop_first=True was used)
+    if transmission_selected == 'Manual':
+        input_data_dict['Manual'] = 1
+    elif transmission_selected == 'Semi-Auto':
+        input_data_dict['Semi-Auto'] = 1
 
-    input_data['type'] = get_type(model_selected)
-    input_df = pd.DataFrame([input_data])
-
-    # Start with numerical features
-    processed_input = input_df[['year', 'mileage', 'tax', 'mpg', 'engineSize']].copy()
-
-    # Generate one-hot encoded columns without prefix
-    trans_dummies = pd.get_dummies(input_df['transmission'], prefix='', prefix_sep='', drop_first=True)
-    fuel_dummies = pd.get_dummies(input_df['fuelType'], prefix='', prefix_sep='', drop_first=True)
-    type_dummies = pd.get_dummies(input_df['type'], prefix='', prefix_sep='', drop_first=True)
-
-    # Combine all features
-    processed_input = pd.concat([processed_input, trans_dummies, fuel_dummies, type_dummies], axis=1)
-
-    # Add 'Electric' column if fuel type is electric
+    # Set fuelType dummies (Diesel is the base category if drop_first=True was used)
     if fuel_type_selected == 'Electric':
-        processed_input['Electric'] = 1
-    else:
-        processed_input['Electric'] = 0
+        input_data_dict['Electric'] = 1
+    elif fuel_type_selected == 'Hybrid':
+        input_data_dict['Hybrid'] = 1
+    elif fuel_type_selected == 'Other': # This is for fuelType 'Other'
+        input_data_dict['Other'] = 1
+    elif fuel_type_selected == 'Petrol':
+        input_data_dict['Petrol'] = 1
 
-    # Add 'series' column
-    processed_input['series'] = input_data['series']
+    # Set type dummies (M type is the base category if drop_first=True was used)
+    car_type = get_type_notebook(model_selected)
+    if car_type == 'S':
+        input_data_dict['S'] = 1
+    elif car_type == 'X':
+        input_data_dict['X'] = 1
+    elif car_type == 'Z':
+        input_data_dict['Z'] = 1
+    elif car_type == 'i': # This is for car type 'i'
+        input_data_dict['i'] = 1
 
-    # Match columns expected by model
-    expected_columns = [
+    # Define the exact column order as expected by the trained model
+    # This list should precisely match the columns of X_train in your notebook
+    expected_columns_from_notebook = [
         'year', 'mileage', 'tax', 'mpg', 'engineSize',
         'Manual', 'Semi-Auto',
-        'Electric', 'Hybrid', 'Other', 'Petrol', 'series',
-        'S', 'X', 'Z', 'i'
+        'Electric', 'Hybrid', 'Other', 'Petrol', # 'Other' for fuelType
+        'series',
+        'S', 'X', 'Z', 'i' # 'i' for car type
     ]
-    final_input_df = processed_input.reindex(columns=expected_columns, fill_value=0)
+
+    # Create a single-row DataFrame with all expected columns initialized
+    final_input_df_data = {col: [0] for col in expected_columns_from_notebook} # Initialize with a list for single row
+    for key, value in input_data_dict.items():
+        if key in final_input_df_data:
+            final_input_df_data[key] = [value] # Ensure value is in a list for single row DataFrame
+
+    final_input_df = pd.DataFrame(final_input_df_data, columns=expected_columns_from_notebook)
+
+    # Ensure 'series' is numeric (it should be from get_series_notebook)
+    final_input_df['series'] = pd.to_numeric(final_input_df['series'])
 
     # Predict
     try:
+        # For debugging, you can uncomment these lines in your app.py:
+        # st.write("--- Debug Info ---")
+        # st.write("Selected Model:", model_selected)
+        # st.write("Derived Series:", input_data_dict['series'])
+        # st.write("Derived Type:", car_type)
+        # st.write("Input Data to Model (first row):")
+        # st.dataframe(final_input_df.head(1))
+        # st.write("Data Types of Input DataFrame:")
+        # st.write(final_input_df.dtypes)
+
         predicted_transformed_price = model.predict(final_input_df)[0]
-        predicted_original_price = denormalize_price(predicted_transformed_price, power_transformer) # Use the loaded transformer
+        predicted_original_price = denormalize_price(predicted_transformed_price, power_transformer)
         st.success(f"Estimated BMW Used Car Price: **£{predicted_original_price:,.2f}**")
         st.balloons()
     except Exception as e:
         st.error(f"An error occurred during prediction: {e}")
+        st.error("Please double-check the input values and ensure the model files are correctly loaded and compatible.")
+        # st.dataframe(final_input_df) # Show the problematic dataframe for debugging
+        # st.write(final_input_df.dtypes)

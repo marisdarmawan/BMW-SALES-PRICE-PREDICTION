@@ -163,7 +163,6 @@ if st.button("Predict Price"):
         predicted_transformed_price = model.predict(final_input_df)[0]
         predicted_original_price = denormalize_price(predicted_transformed_price, power_transformer)
         st.success(f"Estimated BMW Used Car Price: **£{predicted_original_price:,.2f}**")
-        st.balloons()
     except Exception as e:
         st.error(f"An error occurred during prediction: {e}")
         st.error("Please double-check the input values and ensure the model files are correctly loaded and compatible.")

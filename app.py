@@ -56,7 +56,6 @@ fuel_type_selected = st.selectbox("Fuel Type", options=fuel_types)
 st.markdown("---")
 
 if st.button("Predict Price"):
-    # Function to extract series (should mirror your notebook's logic)
     def get_series_notebook(model_name_str):
         if '1 Series' in model_name_str or (not 'Series' in model_name_str and '1' in model_name_str and not model_name_str.startswith('X1')and not model_name_str.startswith('i')): return 1
         elif '2 Series' in model_name_str or (not 'Series' in model_name_str and '2' in model_name_str): return 2
@@ -66,26 +65,19 @@ if st.button("Predict Price"):
         elif '6 Series' in model_name_str or (not 'Series' in model_name_str and '6' in model_name_str): return 6
         elif '7 Series' in model_name_str or (not 'Series' in model_name_str and '7' in model_name_str): return 7
         elif '8 Series' in model_name_str or (not 'Series' in model_name_str and '8' in model_name_str and not model_name_str.startswith('i')): return 8
-        # Handling for X series models like X1, X2 etc. if they are treated as series 1, 2...
-        # This part needs to be exactly how your notebook's get_series handles them.
-        # The notebook's get_series just checks for '1' in string, '2' in string etc.
-        # So "M4" would return 4. "Z3" would return 3. "i3" would return 3. "X5" would return 5.
-        # If a model like "M" or "X" (without a number) was meant to be series 0 in the notebook:
         if 'M' == model_name_str.strip() : return 0 # Example for plain "M"
         if 'X' == model_name_str.strip() : return 0 # Example for plain "X"
-
         # Default for models where series number is not explicitly 1-8 or extracted.
-        # This should match how NaNs from get_series were handled in the notebook (e.g., filled with 0).
         return 0
 
-    # Function to extract type (should mirror your notebook's logic)
+    # Function to extract type 
     def get_type_notebook(model_name_str):
         if 'Series' in model_name_str: return 'S'
         elif 'X' in model_name_str: return 'X'
         elif 'i' in model_name_str: return 'i'
         elif 'Z' in model_name_str: return 'Z'
         elif 'M' in model_name_str: return 'M'
-        return 'Unknown' # Fallback, though all models in your list should be covered
+        return 'Unknown' 
 
     # Prepare a dictionary for the single row of input
     input_data_dict = {
@@ -128,7 +120,6 @@ if st.button("Predict Price"):
         input_data_dict['i'] = 1
 
     # Define the exact column order as expected by the trained model
-    # This list should precisely match the columns of X_train in your notebook
     expected_columns_from_notebook = [
         'year', 'mileage', 'tax', 'mpg', 'engineSize',
         'Manual', 'Semi-Auto',
@@ -145,26 +136,14 @@ if st.button("Predict Price"):
 
     final_input_df = pd.DataFrame(final_input_df_data, columns=expected_columns_from_notebook)
 
-    # Ensure 'series' is numeric (it should be from get_series_notebook)
+    # Ensure 'series' is numeric 
     final_input_df['series'] = pd.to_numeric(final_input_df['series'])
 
     # Predict
     try:
-        # For debugging, you can uncomment these lines in your app.py:
-        # st.write("--- Debug Info ---")
-        # st.write("Selected Model:", model_selected)
-        # st.write("Derived Series:", input_data_dict['series'])
-        # st.write("Derived Type:", car_type)
-        # st.write("Input Data to Model (first row):")
-        # st.dataframe(final_input_df.head(1))
-        # st.write("Data Types of Input DataFrame:")
-        # st.write(final_input_df.dtypes)
-
         predicted_transformed_price = model.predict(final_input_df)[0]
         predicted_original_price = denormalize_price(predicted_transformed_price, power_transformer)
         st.success(f"Estimated BMW Used Car Price: **£{predicted_original_price:,.2f}**")
     except Exception as e:
         st.error(f"An error occurred during prediction: {e}")
         st.error("Please double-check the input values and ensure the model files are correctly loaded and compatible.")
-        # st.dataframe(final_input_df) # Show the problematic dataframe for debugging
-        # st.write(final_input_df.dtypes)
